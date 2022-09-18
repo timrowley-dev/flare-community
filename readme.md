@@ -53,15 +53,17 @@ Installing the Flare node codebase by cloning from the official repository and b
 
 #### Flare Node Installation:
 
-1.  Clone Flare Node repo
+1.  Clone Flare Node repo using latest version tag
     `git clone https://github.com/flare-foundation/flare.git`
-2.  Enter Flare Node directory
+2.  Switch to latest version
+    `git checkout <tag>`
+3.  Enter Flare Node directory
     `cd flare`
-3.  Build Flare Node
+4.  Build Flare Node
     `./scripts/build.sh`
-4.  Set up [node configuration](#flare-node-configuration-optional) _(Optional)_
-5.  Set up [run script](#run-script-installation-optional) and [systemd service](#systemd-service-installation-optional) _(Optional)_
-6.  Start node
+5.  Set up [node configuration](#flare-node-configuration-optional) _(Optional)_
+6.  Set up [run script](#run-script-installation-optional) and [systemd service](#systemd-service-installation-optional) _(Optional)_
+7.  Start node
     a) Run using command found on [Flare repository](https://github.com/flare-foundation/flare#running-flare) for specific network _or_
     b) Start node using the run script setup below using [systemd service](#systemd-service-installation-optional) (ie. `sudo systemctl start flare-node.service`)
 
