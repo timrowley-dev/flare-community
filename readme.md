@@ -8,7 +8,7 @@ Welcome to the commuinty repository for tutorials and helper files. Find links t
 
 #### Official Flare Links:
 
-**Main Website:** https://flare.xyz
-**Documentation:** https://docs.flare.network
-**GitHub:** https://github.com/flare-foundation
+**Main Website:** https://flare.xyz  
+**Documentation:** https://docs.flare.network  
+**GitHub:** https://github.com/flare-foundation  
 **GitLab:** https://gitlab.com/flarenetwork
