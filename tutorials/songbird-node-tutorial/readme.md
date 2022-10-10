@@ -112,11 +112,10 @@ All configurations variables can be found in official [Avalanche documentation](
 
 #### Run Script Installation (Optional):
 
-1. Copy the contents/file of the run script for your network of choice from [scripts](/scripts/)
+1. Copy the contents/file of the run script from [scripts](/tutorials/songbird-node-tutorial/scripts)
 
-- [run-songbird.sh](/scripts/run-songbird.sh)
-- [run-flare.sh](/scripts/) (coming soon)
-- [run-coston.sh](/scripts/) (coming soon)
+- Node Version >= 0.6.4: [run-songbird.sh](/tutorials/songbird-node-tutorial/scripts/run-songbird-v0.6.4.sh)
+- Node Version <= 0.6.3: [run-songbird.sh](/tutorials/songbird-node-tutorial/scripts/run-songbird-v0.6.3.sh)
 
 2. Give execution permission by running `chmod +x <script-name>.sh` (ie. `chmod +x run-songbird.sh`)
 
@@ -124,8 +123,8 @@ All configurations variables can be found in official [Avalanche documentation](
 
 _Requires [run script](#run-script-installation-optional) to be installed or modifed to fit your needs_
 
-1.  Enter text edit into the system services with file name of `flare-node.service`
-    `sudo nano /etc/systemd/system/flare-node.service`
+1.  Enter text edit into the system services with file name of `songbird-node.service`
+    `sudo nano /etc/systemd/system/songbird-node.service`
 2.  Paste service template and make any required changes if applicable (ie. working directory, execution path):
 
 ```ini
@@ -154,6 +153,6 @@ SyslogIdentifier=SongbirdNode
 WantedBy=multi-user.target
 ```
 
-3. Allow service to start node on system boot up by running `sudo systemctl enable flare-node.service`
+3. Allow service to start node on system boot up by running `sudo systemctl enable songbird-node.service`
 
-4. Start service (boot up node) `sudo systemctl start flare-node.service`
+4. Start service (boot up node) `sudo systemctl start songbird-node.service`
