@@ -1,0 +1,14 @@
+
+[Unit]
+Description=Flare Systemd Service
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+User=<user> # Specify Working User
+WorkingDirectory=<working-directory> # Specify Working Directory
+ExecStart=<home-directory>/flare/build/flare  --http-host=0.0.0.0 # Specify home directory and add any desired node flags
+LimitNOFILE=32768
+Restart=always
+RestartSec=1
+[Install]
+WantedBy=multi-user.target

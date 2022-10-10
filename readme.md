@@ -2,9 +2,9 @@
 
 Welcome to the commuinty repository for tutorials and helper files. Find links to guides below.
 
-##### [Songbird Node Tutorial](tutorials/songbird-node-tutorial.md)
+##### [Songbird Node Tutorial](tutorials/songbird-node-tutorial/readme.md)
 
-##### [Flare Node Tutorial](tutorials/flare-node-tutorial.md) (Coming Soon)
+##### [Flare Node Tutorial](tutorials/flare-node-tutorial/readme.md) (Coming Soon)
 
 #### Official Flare Links:
 
