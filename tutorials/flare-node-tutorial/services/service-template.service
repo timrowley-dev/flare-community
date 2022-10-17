@@ -1,0 +1,25 @@
+# flare-service-template.service
+# This template requires the run-flare.sh script
+[Unit]
+Description=Flare Systemd Service
+StartLimitIntervalSec=0
+
+[Service]
+ExecStart=/home/ubuntu/run-flare.sh
+Restart=always
+RestartSec=1
+WorkingDirectory=/home/ubuntu
+Environment=GOPATH=/home/ubuntu/go
+Environment=PATH=/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+
+User=ubuntu
+Type=forking
+
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=FlareNode
+
+[Install]
+WantedBy=multi-user.target
+
+
