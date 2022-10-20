@@ -1,6 +1,8 @@
 ### Flare Node Tutorial
 
-**YouTube Tutorial (AWS)** (Tim Rowley): LINK COMING SOON
+**YouTube Tutorial (AWS)** (Tim Rowley): https://youtu.be/5aq3PDxij8U
+
+**Official Flare Node Repository**: https://github.com/flare-foundation/go-flare
 
 #### Outline
 
@@ -56,7 +58,7 @@ Installing the Flare node codebase by cloning from the official repository and b
 #### Flare Node Installation:
 
 1.  Clone Flare Node repo using latest version tag
-    `git clone https://github.com/flare-foundation/flare.git`
+    `git clone https://github.com/flare-foundation/go-flare.git`
 2.  Enter repository directory
     `cd go-flare/avalanchego`
 3.  Switch to [latest version](https://github.com/flare-foundation/go-flare/tags) (ie. v0.7.0)
