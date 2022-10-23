@@ -43,7 +43,9 @@ Installing the Flare node codebase by cloning from the official repository and b
     `sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.16.8.linux-amd64.tar.gz`
 3.  Add environment variable
     `export PATH=$PATH:/usr/local/go/bin`
-4.  Reload environments
+4.  You might also need to set GOPATH if build requests it:
+    `export GOPATH=$HOME/go`
+5.  Reload environments
     `source $HOME/.profile`
 
 #### Install node dependencies:
@@ -61,7 +63,7 @@ Installing the Flare node codebase by cloning from the official repository and b
 #### Flare Node Installation:
 
 1.  Clone Flare Node repo using latest version tag
-    `git clone https://github.com/flare-foundation/flare.git`
+    `git clone https://github.com/flare-foundation/go-songbird`
 2.  Enter repository directory
     `cd go-songbird`
 3.  Switch to latest version
