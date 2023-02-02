@@ -17,5 +17,5 @@ Welcome to the commuinty repository for tutorials and helper files. Find links t
 **Main Website:** https://flare.network  
 **Documentation:** https://docs.flare.network  
 **GitHub:** https://github.com/flare-foundation  
-**GitLab:** https://gitlab.com/flarenetwork
+**GitLab:** https://gitlab.com/flarenetwork  
 **Flare API Portal:** https://api-portal.flare.network/
