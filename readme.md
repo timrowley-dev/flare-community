@@ -2,13 +2,20 @@
 
 Welcome to the commuinty repository for tutorials and helper files. Find links to guides below.
 
-##### [Flare Node Tutorial](tutorials/flare-node-tutorial/readme.md)
+#### Tutorials
 
-##### [Songbird Node Tutorial](tutorials/songbird-node-tutorial/readme.md)
+##### [Flare Node Installation](tutorials/flare-node-installation/readme.md)
+
+##### [Songbird Node Installation](tutorials/songbird-node-installation/readme.md)
+
+#### Examples
+
+##### [Flare API Portal Usage](examples/flare-api-portal-usage/readme.md)
 
 #### Official Flare Links:
 
-**Main Website:** https://flare.xyz  
+**Main Website:** https://flare.network  
 **Documentation:** https://docs.flare.network  
 **GitHub:** https://github.com/flare-foundation  
 **GitLab:** https://gitlab.com/flarenetwork
+**Flare API Portal:** https://api-portal.flare.network/
