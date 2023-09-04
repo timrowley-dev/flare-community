@@ -2,6 +2,8 @@
 
 The _Go-Flare Helper Script_ is designed to assist in installing a Flare node and upgrade it with a single command. It will install all required dependencies including Go, build-essentials and JQ. It clones the latest node repository, switches to the desired tag, builds and creates systemd service to start the node and enabling start on server reboot. It also enables upgrades done by accessing the go-flare directory, pulling any updates and building.
 
+Note: This script is not fully developed - some features might not work as expected.
+
 ## Example Usage
 
 This script is designed and tested on Ubuntu 20.04 and assumes an install will be made to a user directory ($HOME).
