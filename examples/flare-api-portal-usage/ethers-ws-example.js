@@ -19,3 +19,5 @@ provider.on("pending", (tx) => {
     console.log(transaction);
   });
 });
+
+// wss://api.flare.network/flare/bc/C/ws?Xーapikey=TiryHtYzkt3Y1Bs6WGFEGhQb0GZayBZXSZOFAYNbS935DziF
