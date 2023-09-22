@@ -32,12 +32,11 @@ create_service_file () {
    echo "Creating service file..."
    rm -f "$nodeName.service"
 
-   execFolder=""
-   if [ "$networkParam" == "flare" ]; then
-      execFolder="avalanchego"
-   else
-      execFolder="flare"
-   fi
+   execDir="avalanchego" # go-flare is 'avalanchego', go-songbird is 'flare'
+   if [ "$networkParam" == "songbird" ]; then execDir="flare"; fi
+
+   execCommand="ExecStart=$HOME/$nodeNameKebab/avalanchego/build/$execDir --network-id=$networkParam --bootstrap-ips="\"$bootstrapIps"\" --bootstrap-ids="\"$bootstrapIds"\" --config-file=$dataDirParam/configs/node.json"
+   if [ "$networkParam" == "flare" ]; then execCommand+=" --data-dir=$dataDirParam"; fi # data-dir only available on goflare
 
    echo "[Unit]">>"$nodeName.service"
    echo "Description="$nodeName Systemd Service">>$nodeName.service"
@@ -46,7 +45,7 @@ create_service_file () {
    echo "Type=simple">>"$nodeName.service"
    echo "User=$(whoami)">>"$nodeName.service"
    echo "WorkingDirectory=$HOME">>"$nodeName.service"
-   echo "ExecStart=$HOME/go-flare/avalanchego/build/$execFolder --network-id=$networkParam --bootstrap-ips="\"$bootstrapIps"\" --bootstrap-ids="\"$bootstrapIds"\" --data-dir=$dataDirParam --config-file=$dataDirParam/configs/node.json">>"$nodeName.service"
+   echo "$execCommand">>"$nodeName.service"
    echo "LimitNOFILE=32768">>$nodeName.service
    echo "Restart=always">>"$nodeName.service"
    echo "RestartSec=1">>"$nodeName.service"
@@ -74,8 +73,8 @@ create_config_file () {
       echo "  \"db-dir\": \"$dbDirParam\"">>node.json
    fi
    echo "}" >>node.json
-   mkdir -p "$HOME/.avalanchego/configs"
-   cp -f node.json "$HOME/.avalanchego/configs/node.json"
+   mkdir -p "$dataDirParam/configs"
+   cp -f node.json "$dataDirParam/configs/node.json"
 
    # C Chain Config
    json_content='{
@@ -104,8 +103,8 @@ create_config_file () {
 	echo "}" >>config.json 
 
    # Write JSON content to config.json
-   mkdir -p "$HOME/.avalanchego/configs/chains/C"
-   cp -f config.json "$HOME/.avalanchego/configs/chains/C/config.json"
+   mkdir -p "$dataDirParam/configs/chains/C"
+   cp -f config.json "$dataDirParam/configs/chains/C/config.json"
    rm -f config.json
 }
 
@@ -370,7 +369,7 @@ httpHostParam=""
 publicIpParam=""
 dbDirParam=""
 networkParam=""
-dataDirParam=""   # User provided data dir will break remove feature 
+dataDirParam=""   # Can only be set as a param for goflare
 
 nodeName=""       # goflare | gosongbird
 nodeNameKebab=""  # go-flare | go-songbird
@@ -458,3 +457,6 @@ done
 
 # End of script
 
+
+
+# ./flare.sh --version v0.6.4 --http-host 0.0.0.0 --db-dir $HOME/mydb --network songbird --install
