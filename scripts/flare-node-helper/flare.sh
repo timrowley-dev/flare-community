@@ -18,25 +18,13 @@ list_versions () {
 
 # Creates service file to run node 
 create_service_file () {
-	bootstrapIps=$(curl -m 10 -sX POST \
-   --data '{ "jsonrpc":"2.0", "id":1, "method":"info.getNodeIP" }' \
-   -H 'content-type:application/json;' https://$networkParam.flare.network/ext/info \
-   | jq -r ".result.ip")
 
-	bootstrapIds=$(curl -m 10 -sX POST \
-   --data '{ "jsonrpc":"2.0", "id":1, "method":"info.getNodeID" }' \
-   -H 'content-type:application/json;' https://$networkParam.flare.network/ext/info \
-   | jq -r ".result.nodeID")
-
+   remove_service_file
 
    echo "Creating service file..."
    rm -f "$nodeName.service"
 
-   execDir="avalanchego" # go-flare is 'avalanchego', go-songbird is 'flare'
-   if [ "$networkParam" == "songbird" ]; then execDir="flare"; fi
-
-   execCommand="ExecStart=$HOME/$nodeNameKebab/avalanchego/build/$execDir --network-id=$networkParam --bootstrap-ips="\"$bootstrapIps"\" --bootstrap-ids="\"$bootstrapIds"\" --config-file=$dataDirParam/configs/node.json"
-   if [ "$networkParam" == "flare" ]; then execCommand+=" --data-dir=$dataDirParam"; fi # data-dir only available on goflare
+   execCommand=$(create_node_runner_script)
 
    echo "[Unit]">>"$nodeName.service"
    echo "Description="$nodeName Systemd Service">>$nodeName.service"
@@ -45,7 +33,7 @@ create_service_file () {
    echo "Type=simple">>"$nodeName.service"
    echo "User=$(whoami)">>"$nodeName.service"
    echo "WorkingDirectory=$HOME">>"$nodeName.service"
-   echo "$execCommand">>"$nodeName.service"
+   echo "ExecStart=$execCommand">>"$nodeName.service"
    echo "LimitNOFILE=32768">>$nodeName.service
    echo "Restart=always">>"$nodeName.service"
    echo "RestartSec=1">>"$nodeName.service"
@@ -54,6 +42,7 @@ create_service_file () {
    echo "">>"$nodeName.service"
    chmod 644 "$nodeName.service"
    sudo cp -f "$nodeName.service" "/etc/systemd/system/$nodeName.service"
+   sudo systemctl daemon-reload
    rm -f "$nodeName.service"
 }
 
@@ -219,7 +208,6 @@ install () {
    echo "Public or Private: $httpHostParam"
    echo "DB directory: $dbDirParam"
 	echo ""
-   sleep 5
 
    install_flare_node
    create_config_file
@@ -228,6 +216,11 @@ install () {
    sudo systemctl daemon-reload
    sudo systemctl start $nodeName
    sudo systemctl enable $nodeName
+   
+   echo ""
+   echo "Data directory: $dataDirParam"
+   echo "DB directory: $dbDirParam"
+   echo "== Node installation complete. =="
 }
 
 upgrade_flare_node () {
@@ -242,21 +235,22 @@ upgrade_flare_node () {
    fi
 
    echo "Upgrading $nodeNameKebab from $current_tag to $latest_tag"
+   read -r -p "Are you sure you want to proceed? (y/n): " answer
 
-   echo "Stopping $nodeName"
-   sudo systemctl stop $nodeName
+   if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
+      echo "Stopping $nodeName"
+      sudo systemctl stop $nodeName
 
-   git pull origin main
-   git checkout "$latest_tag"
-   ./scripts/build.sh
-   echo "Installed $nodeNameKebab $(git describe --tags --abbrev=0)"
-
-   echo "Recreating service file..." # recreate to refresh any changed bootstrap ID/IP's
-   create_service_file
-   echo "Starting Flare node..."
-   sudo systemctl daemon-reload
-   sudo systemctl start $nodeName
-   sudo systemctl enable $nodeName
+      git pull origin main
+      git checkout "$latest_tag"
+      ./scripts/build.sh
+      echo "Installed $nodeNameKebab $(git describe --tags --abbrev=0)"
+      echo "Starting Flare node..."
+      sudo systemctl daemon-reload
+      sudo systemctl start $nodeName
+   else
+      echo "Upgrade canceled."
+   fi
 }
 
 remove_node () {
@@ -291,21 +285,49 @@ remove_service_file () {
 
 # Function to get health status and connected peers
 get_health_status () {
-    curl_output=$(curl -s http://localhost:9650/ext/health)
-    healthy_value=$(echo "$curl_output" | jq -r '.healthy')
-    connected_peers_value=$(echo "$curl_output" | jq -r '.checks.network.message.connectedPeers')
+    curl_health=$(curl -s http://localhost:9650/ext/health)
+    healthy_value=$(echo "$curl_health" | jq -r '.healthy')
+    connected_peers_value=$(echo "$curl_health" | jq -r '.checks.network.message.connectedPeers')
+
+    curl_version=$(curl -s --location 'http://localhost:9650/ext/info' --header 'Content-Type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"info.getNodeVersion","params" :[]}')
+    node_verson=$(echo "$curl_version" | jq -r '.result.version')
     
     echo "Healthy: $healthy_value"
     echo "Connected Peers: $connected_peers_value"
+    echo "Node Version: $node_verson"
 }
 
-# make_backup () {
-#  Stop node, rsync to versioned GCP bucket
-# }
+create_node_runner_script () {
+   # Define the path where you want to create the bootstrap_runner.sh script
+   SCRIPT_DIR="$(realpath "$(dirname "$0")")"
+   SCRIPT_PATH="$SCRIPT_DIR/node_runner.sh"
 
-# fetch_backup () {
-#  Fetch data from GCP Bucket, push to database directory 
-# }
+# Create the bootstrap_runner.sh script with the necessary content
+cat << EOF > "$SCRIPT_PATH"
+#!/bin/bash
+
+# DO NOT REMOVE OR MOVE THIS SCRIPT - REQUIRED FOR SYSTEMD SERVICE
+
+bootstrapIds=\$(curl -m 10 -sX POST --data '{ "jsonrpc":"2.0", "id":1, "method":"info.getNodeID" }' -H 'content-type:application/json;' https://$networkParam.flare.network/ext/info | jq -r ".result.nodeID")
+bootstrapIps=\$(curl -m 10 -sX POST --data '{ "jsonrpc":"2.0", "id":1, "method":"info.getNodeIP" }' -H 'content-type:application/json;' https://$networkParam.flare.network/ext/info | jq -r ".result.ip")
+
+execDir="avalanchego" # go-flare is 'avalanchego', go-songbird is 'flare'
+
+if [ "$networkParam" == "songbird" ]; then execDir="flare"; fi
+
+execCommand="$HOME/$nodeNameKebab/avalanchego/build/\$execDir --network-id=$networkParam --bootstrap-ips="\$bootstrapIps" --bootstrap-ids="\$bootstrapIds" --config-file=$dataDirParam/configs/node.json"
+
+if [ "$networkParam" == "flare" ]; then execCommand+=" --data-dir=$dataDirParam"; fi # data-dir only available on goflare
+
+
+# Execute the main command
+\$execCommand
+EOF
+
+   # Make the created bootstrap_runner.sh script executable
+   chmod +x "$SCRIPT_PATH"
+   echo "$SCRIPT_PATH"
+}
 
 # Prints usage commands
 usage () {
@@ -320,8 +342,6 @@ usage () {
   echo "   --list            			Lists latest versions available to install"
   echo "   --install         			Installs node with provided version (see --version && --list)"
   echo "   --upgrade         			Upgrades go-flare to latest tag version available"
-  echo "   --backup         			Creates a backup of database (db-dir or defaults to $HOME/<.avalanchego | .flare>/db) to GCP bucket (WIP)" 
-  echo "   --restore         			Restores backup of database (db-dir or defaults to $HOME/<.avalanchego | .flare>/db) frpm GCP Bucket (WIP)" 
   echo "   --remove         			Removes goflare/gosongbird and service files"
   echo "   --status         			Gives current health state and peers of locally running node"
   echo ""
@@ -336,12 +356,6 @@ check_network_provided () {
 # Check if jq is installed
 check_jq_installed () {
    if ! command -v jq &> /dev/null; then
-      # echo ""
-      # echo "Package 'jq' is required. Would you like to install it?"
-      # echo ""
-      # read -p "Are you sure you want to proceed? (y/n): " answer
-
-      # if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
             echo "Installing jq package..."
             
             # Install jq on Ubuntu
@@ -357,9 +371,6 @@ check_jq_installed () {
                echo "Installation of jq failed. Please install it manually."
                exit 1
             fi
-      # else
-      #    echo "Action canceled."
-      # fi
    fi
 }
 
@@ -443,6 +454,10 @@ while [[ $# -gt 0 ]]; do
          remove_node
          exit 0
          ;;
+      --recreate-service-file)               # FUNCTION
+         create_service_file
+         exit 0
+         ;;
       --status)               # FUNCTION
          get_health_status
          exit 0
@@ -454,9 +469,3 @@ while [[ $# -gt 0 ]]; do
          ;;
    esac
 done
-
-# End of script
-
-
-
-# ./flare.sh --version v0.6.4 --http-host 0.0.0.0 --db-dir $HOME/mydb --network songbird --install
