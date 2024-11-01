@@ -19,8 +19,9 @@ This script is designed and tested on Ubuntu 20.04 and assumes an install will b
 The version parameter should be the repository name and tag name (e.g. `go-flare:v1.7.1805` or `go-flare:v0.6.6-songbird`). Note: Both Flare and Songbird (including testnets) are in the `goflare` repository as of November 2024.
 
 ```
-Usage: /.flare.sh [ --help | --version <tag> | --http-host <ip> | --db-dir <path> | --archival ] [ --list | --install | --upgrade  | --remove | --status ]
+Usage: /.flare.sh [ --network <network> | --version <tag> | --http-host <ip> | --db-dir <path> | --archival ] [--install | --status ]
 Options:
+   --network <network>        The network to install
    --version <tag>            Installs <tag> version, default is the latest
    --http-host <ip>  			The accepted interface for RPC requests on port 9650
    --db-dir <path>            Full path to the database directory (required)
@@ -31,6 +32,6 @@ Options:
 Example Usage:
 
 Example Usage to install a specific version, http-host & db-dir:
-`./install-flare-docker.sh --version go-flare:v1.7.1805 --http-host 0.0.0.0 --db-dir $HOME/mydb --install`
+`./install-flare-docker.sh --network flare --version go-flare:v1.7.1807 --http-host 0.0.0.0 --db-dir $HOME/mydb --install`
 ```
 

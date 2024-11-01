@@ -203,8 +203,8 @@ install () {
 
    validate_variables
 
-   if [[ "$pruningEnabledParam" == "true" ]]; then
-   echo "Warning: Pruning is enabled. Ensure this is intended. Database will be significantly larger than pruning."
+   if [[ "$pruningEnabledParam" == "false" ]]; then
+   echo "Warning: Pruning is disabled. Ensure this is intended. Database will be significantly larger than pruning."
    printf "\n"
    fi
 
