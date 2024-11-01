@@ -19,3 +19,5 @@ Welcome to the commuinty repository for tutorials and helper files. Find links t
 **GitHub:** https://github.com/flare-foundation  
 **GitLab:** https://gitlab.com/flarenetwork  
 **Flare API Portal:** https://api-portal.flare.network/
+
+This repository can be found at: https://github.com/Onaxim/flare-community/
