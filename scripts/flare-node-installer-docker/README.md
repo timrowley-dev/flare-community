@@ -1,5 +1,7 @@
 # Go-Flare Helper Script
 
+WARNING: For automated pipelines, make a private copy of any scripts you use, never pull from a public repository in automated setups.
+
 The _Go-Flare Installer Script_ is designed to assist in installing a Flare (including Songbird & testnets) node and upgrade it with a single command. To simplify the installation, this script uses Docker and the containe rimages provided by the [Flare Foundation repository](https://hub.docker.com/r/flarefoundation/go-flare/tags).
 
 Note: This script is not fully developed - some features might not work as expected.

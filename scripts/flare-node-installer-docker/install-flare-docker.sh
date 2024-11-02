@@ -1,4 +1,5 @@
 #!/bin/bash
+# WARNING: For automated pipelines, make a private copy of any scripts you use, never pull from a public repository in automated setups.
 
 cChainConfig='{
   "snowman-api-enabled": false,
@@ -10,7 +11,7 @@ cChainConfig='{
     "web3",
     "internal-eth",
     "internal-blockchain",
-    "internal-transaction-pool"
+    "internal-transaction"
   ],
   "rpc-gas-cap": 50000000,
   "rpc-tx-fee-cap": 100,
