@@ -5,7 +5,7 @@ Welcome to the commuinty repository for tutorials and helper files. Find links t
 #### Scripts
 
 - [Flare Node Installer (Docker)](scripts/flare-node-installer-docker/README.md)    
-- [GCP Flare Node Snapshot (Docker)](scripts/gcp-flare-node-snapshot-docker/README.md)
+- [GCP Flare Node Snapshot](scripts/gcp-flare-node-snapshot-docker/README.md)
 
 
 #### Examples
