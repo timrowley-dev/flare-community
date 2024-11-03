@@ -1,14 +1,16 @@
 #!/bin/bash
 
-# Run example: ./snapshot.sh songbird-node-database songbird
-# Designed to run with named docker instance; makes regional snapshots in the zone of the instance
 
 # WARNING: For automated pipelines, make a private copy of any scripts you use, never pull from a public repository in automated setups.
+# Designed to run with named docker instance; makes regional snapshots in the zone of the instance
+
+
+# Example: ./gcp-snapshot-script.sh <diskname> <dockerContainer> <retentionDays> 
+# Example Cronjob: 0 0 */3 * * /home/ubuntu/gcp-snapshot-script.sh <diskname> <dockerContainer> <retentionDays> /home/ubuntu/snapshot-cronjob.log 2>&1
+
+# Example (needs additional configuration): ./gcp-snapshot-script.sh <diskname> <dockerContainer> <STANDARD|ARCHIVE> <retentionDays> 
 
 START_TIME=$(date +%s)
-
-# Example: ./gcp-snapshot-script.sh <diskname> <dockerContainer> <STANDARD|ARCHIVE> <retentionDays> 
-# Example Cronjob: 0 0 */3 * * /home/ubuntu/gcp-snapshot-script.sh <diskname> <dockerContainer> <STANDARD|ARCHIVE> <retentionDays> /home/ubuntu/snapshot-cronjob.log 2>&1
 
 # Check if disk name is provided
 if [ -z "$1" ]; then
@@ -22,17 +24,18 @@ if [ -z "$2" ]; then
     exit 1
 fi
 
-# Snapshot type (e.g. STANDARD or ARCHIVE)
-if [ -z "$3" ]; then
-    echo "Error: Please provide a snapshot type."
-    exit 1
-fi
 
 # Days to retain snapshot (will delete via this script)
-if [ -z "$4" ]; then
+if [ -z "$3" ]; then
     echo "Error: Please provide snapshot rentention days"
     exit 1
 fi
+
+# Snapshot type (e.g. STANDARD or ARCHIVE)
+# if [ -z "$4" ]; then
+#     echo "Error: Please provide a snapshot type."
+#     exit 1
+# fi
 
 curl_output=$(curl -s http://localhost:9650/ext/health)
 
@@ -43,15 +46,20 @@ DOCKER_CONTAINER="$2"
 ZONE=$(curl -s "http://metadata.google.internal/computeMetadata/v1/instance/zone" -H "Metadata-Flavor: Google" | awk -F/ '{print $NF}')
 REGION=$(echo "$ZONE" | awk -F- '{print $1"-"$2}')
 SNAPSHOT_NAME="$DISK_NAME-$(date +%Y-%m-%d)"
-SNAPSHOT_TYPE="$3"
-RETENTION_DAYS="$4"
+RETENTION_DAYS="$3"
+# SNAPSHOT_TYPE="$4"
 
 # Pause node service
 echo "Stopping $DOCKER_CONTAINER container..."
 docker stop "$DOCKER_CONTAINER"
 
-# Create the snapshot
+
+# Create snapshot (requires https://www.googleapis.com/auth/cloud-platform scope and permissions: compute.disks.createSnapshot, compute.snapshots.create, compute.snapshots.get, and compute.zoneOperations.get)
+# Readmore: https://cloud.google.com/sdk/gcloud/reference/compute/disks/snapshot
 /snap/bin/gcloud compute disks snapshot "$DISK_NAME" --zone="$ZONE" --snapshot-names="$SNAPSHOT_NAME" --description="Snapshot for $SNAPSHOT_NAME" --labels=healthy="$HEALTHY_VALUE" --storage-location="$REGION" 
+
+# compute snapshots create requires different permissions, worthwhile testing for ability to create archive snapshots
+# Readmore: https://cloud.google.com/compute/docs/disks/create-snapshots
 # /snap/bin/gcloud compute snapshots create "$SNAPSHOT_NAME" --source-disk-region="$REGION" --source-disk="$DISK_NAME" --snapshot-type="$SNAPSHOT_TYPE" --storage-location="$REGION" --description="Snapshot for $SNAPSHOT_NAME" --labels=healthy="$HEALTHY_VALUE"
 
 # Resume node service

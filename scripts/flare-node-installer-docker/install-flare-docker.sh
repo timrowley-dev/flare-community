@@ -24,6 +24,43 @@ cChainConfig='{
   "log-level": "info"
 }'
 
+cChainConfig_validator='
+{
+  "snowman-api-enabled": false,
+  "coreth-admin-api-enabled": false,
+  "coreth-admin-api-dir": "",
+  "eth-apis": ["web3", "net"],
+  "continuous-profiler-dir": "",
+  "continuous-profiler-frequency": 900000000000,
+  "continuous-profiler-max-files": 5,
+  "rpc-gas-cap": 50000000,
+  "rpc-tx-fee-cap": 100,
+  "preimages-enabled": false,
+  "pruning-enabled": true,
+  "snapshot-async": true,
+  "snapshot-verification-enabled": false,
+  "metrics-enabled": true,
+  "metrics-expensive-enabled": false,
+  "local-txs-enabled": false,
+  "api-max-duration": 30000000000,
+  "ws-cpu-refill-rate": 0,
+  "ws-cpu-max-stored": 0,
+  "api-max-blocks-per-request": 30,
+  "allow-unfinalized-queries": false,
+  "allow-unprotected-txs": false,
+  "keystore-directory": "",
+  "keystore-external-signer": "",
+  "keystore-insecure-unlock-allowed": false,
+  "remote-tx-gossip-only-enabled": false,
+  "tx-regossip-frequency": 60000000000,
+  "tx-regossip-max-size": 15,
+  "log-level": "info",
+  "offline-pruning-enabled": false,
+  "offline-pruning-bloom-filter-size": 512,
+  "offline-pruning-data-directory": ""
+}
+'
+
 get_health_status () {
     curl_health=$(curl -s http://localhost:9650/ext/health)
     healthy_value=$(echo "$curl_health" | jq -r '.healthy')
@@ -132,9 +169,17 @@ install_node () {
       pruningEnabledParam="true"
    fi
 
+   if [[ "$isValidatorParam" == "false" ]]; then
+      config="$cChainConfig"
+      # TODO: Validate this sets pruning to false when --archival is used
+      config=$(echo "$config" | jq --arg pruningEnabled "$pruningEnabledParam" '.["pruning-enabled"] = ($pruningEnabled == "true")')
+   else
+      config="$cChainConfig_validator"
+   fi
+
    # Write cChainConfig to file
-   cChainConfig=$(echo "$cChainConfig" | jq --arg pruningEnabled "$pruningEnabledParam" '.["pruning-enabled"] = ($pruningEnabled == "true")')
-   echo "$cChainConfig" | sudo tee /opt/flare/conf/config.json > /dev/null
+
+   echo "$config" | sudo tee /opt/flare/conf/config.json > /dev/null
 
    # Get bootstrap endpoint
    bootstrap_endpoint=$(get_bootstrap_endpoint)
@@ -142,8 +187,9 @@ install_node () {
    # Pull docker image 
    docker pull flarefoundation/"$nodeTagParam"
 
-   # Run docker container
-   docker run -d --name "$networkParam"-observer \
+
+   if [[ "$isValidatorParam" == "false" ]]; then
+      docker run -d --name "$networkParam"-observer \
       --restart always \
       -e AUTOCONFIGURE_BOOTSTRAP="1" \
       -e NETWORK_ID="$networkParam" \
@@ -156,6 +202,25 @@ install_node () {
       -p "$httpHostParam":9650:9650 \
       -p "$httpHostParam":9651:9651 \
       flarefoundation/"$nodeTagParam"
+   else
+      docker run -d --name "$networkParam"-validator \
+      --restart always \
+      -e AUTOCONFIGURE_BOOTSTRAP="1" \
+      -e NETWORK_ID="$networkParam" \
+      -e AUTOCONFIGURE_PUBLIC_IP="1" \
+      -e AUTOCONFIGURE_BOOTSTRAP_ENDPOINT="$bootstrap_endpoint" \
+      -e HTTP_HOST="$httpHostParam" \
+      -e EXTRA_ARGUMENTS="--staking-tls-cert-file=/app/staking/staker.crt --staking-tls-key-file=/app/staking/staker.key" \
+      -v "$dbDirParam":/app/db \
+      -v /opt/flare/conf:/app/conf/C \
+      -v /opt/flare/logs:/app/logs \
+      -v /opt/flare/staking:/app/staking \
+      -p "$httpHostParam":9650:9650 \
+      -p "$httpHostParam":9651:9651 \
+      flarefoundation/"$nodeTagParam"
+   fi
+   # Run docker container
+   
 
       echo "==== Node Installed! ===="
       echo "Network: $networkParam"
@@ -166,6 +231,9 @@ install_node () {
       echo "Node Version: $nodeTagParam"
       echo "Pruning Enabled: $pruningEnabledParam"
 }
+
+# --staking-tls-cert-file=<NODE_CRT_PATH> --staking-tls-key-file=<NODE_KEY_PATH>
+# --staking-tls-cert-file=/app/staking/staking.crt --staking-tls-key-file=/app/staking/staking.key
 
 
 
@@ -198,6 +266,19 @@ validate_variables () {
       echo "DB Directory is required"
       exit 1
    fi 
+
+   if [[ "$isValidatorParam" == "true" ]]; then
+      if [ ! -d /opt/flare/staking ]; then
+         sudo mkdir -p /opt/flare/staking
+         echo "Staking directory created; please add your staking.crt and staking.key files to the /opt/flare/staking directory before proceeding."
+         exit 1
+      fi
+
+      if [[ "$pruningEnabledParam" == "false" ]]; then
+         echo "This script does not support archival nodes that are validators."
+         exit 1
+      fi
+   fi
 }
 
 install () {
@@ -216,10 +297,11 @@ install () {
    echo "Config Directory: /opt/flare/config"
    echo "Node Version: $nodeTagParam"
    echo "Pruning Enabled: $pruningEnabledParam" 
+   echo "Is Validator: $isValidatorParam" 
    printf "\n"
    echo "Starting installation in 3 seconds..."
    
-   sleep 3
+   sleep 5
 
    install_jq
    install_docker
@@ -231,6 +313,7 @@ pruningEnabledParam="true"
 httpHostParam="0.0.0.0"
 dbDirParam=""
 networkParam=""
+isValidatorParam="false"
 
 # Example commands
 # --network flare --version go-flare:v1.7.1807 --http-host 0.0.0.0 --db-dir /mnt/disks/db --install
@@ -261,6 +344,10 @@ while [[ $# -gt 0 ]]; do
          ;;
       --archival)             # VARIABLE
          pruningEnabledParam="false"
+         shift 
+         ;;
+      --validator)             # VARIABLE
+         isValidatorParam="true"
          shift 
          ;;
       --install)              # FUNCTION
