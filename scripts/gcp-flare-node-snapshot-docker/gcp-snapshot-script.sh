@@ -51,7 +51,8 @@ echo "Stopping $DOCKER_CONTAINER container..."
 docker stop "$DOCKER_CONTAINER"
 
 # Create the snapshot
-/snap/bin/gcloud compute disks snapshot "$DISK_NAME" --zone="$ZONE" --snapshot-names="$SNAPSHOT_NAME" --description="Snapshot for $SNAPSHOT_NAME" --labels=healthy="$HEALTHY_VALUE" --storage-location="$REGION" --snapshot-type="$SNAPSHOT_TYPE"
+/snap/bin/gcloud compute disks snapshot "$DISK_NAME" --zone="$ZONE" --snapshot-names="$SNAPSHOT_NAME" --description="Snapshot for $SNAPSHOT_NAME" --labels=healthy="$HEALTHY_VALUE" --storage-location="$REGION" 
+# /snap/bin/gcloud compute snapshots create "$SNAPSHOT_NAME" --source-disk-region="$REGION" --source-disk="$DISK_NAME" --snapshot-type="$SNAPSHOT_TYPE" --storage-location="$REGION" --description="Snapshot for $SNAPSHOT_NAME" --labels=healthy="$HEALTHY_VALUE"
 
 # Resume node service
 echo "Starting $DOCKER_CONTAINER container..."
